@@ -722,36 +722,37 @@ function artSVG(d,fills,o){
 }
 
 /* ---------- Estrategias y pistas ---------- */
-function strategy(t,m){
-  var p=t*m,G=function(rows,color){return {rows:rows,color:color};},r;
+/* hide=true (pistas durante el juego): muestra los pasos pero deja el resultado final para ella */
+function strategy(t,m,hide){
+  var p=t*m,R=hide?'?':p,G=function(rows,color){return {rows:rows,color:color};},r;
   switch(t){
-    case 1:r={groups:[G(1,GS)],text:'Por 1 el número se queda igual: <b>1 × '+m+' = '+m+'</b>.'};break;
-    case 2:r={groups:[G(1,GA),G(1,GB)],text:'Es el doble: <b>'+m+' + '+m+' = '+p+'</b>.'};break;
-    case 3:r={groups:[G(2,GA),G(1,GB)],text:'El doble y uno más: <b>'+(2*m)+' + '+m+' = '+p+'</b>.'};break;
-    case 4:r={groups:[G(2,GA),G(2,GB)],text:'El doble del doble: <b>'+m+' → '+(2*m)+' → '+p+'</b>.'};break;
-    case 5:r={groups:[G(5,GS)],text:m%2===0?'La mitad de '+m+' es '+(m/2)+', ponle un cero: <b>'+p+'</b>.':'Cuenta de 5 en 5: <b>'+range(1,m).map(function(i){return 5*i;}).join(', ')+'</b>.'};break;
-    case 6:r={groups:[G(5,GA),G(1,GB)],text:'La del 5 y uno más: <b>'+(5*m)+' + '+m+' = '+p+'</b>.'};break;
-    case 7:r={groups:[G(5,GA),G(2,GB)],text:'La del 5 más la del 2: <b>'+(5*m)+' + '+(2*m)+' = '+p+'</b>.'};break;
-    case 8:r={groups:[G(4,GA),G(4,GB)],text:'Doble, doble y doble: <b>'+m+' → '+(2*m)+' → '+(4*m)+' → '+p+'</b>.'};break;
-    case 9:r={groups:[G(9,GS)],text:'Es 10 × '+m+' menos '+m+': <b>'+(10*m)+' − '+m+' = '+p+'</b>.'};break;
-    default:r={groups:[G(10,GS)],text:'Ponle un cero al '+m+': <b>'+p+'</b>.'};
+    case 1:r={groups:[G(1,GS)],text:'Por 1 el número se queda igual: <b>1 × '+m+' = '+(hide?'?':m)+'</b>.'};break;
+    case 2:r={groups:[G(1,GA),G(1,GB)],text:'Es el doble: <b>'+m+' + '+m+' = '+R+'</b>.'};break;
+    case 3:r={groups:[G(2,GA),G(1,GB)],text:'El doble y uno más: <b>'+(2*m)+' + '+m+' = '+R+'</b>.'};break;
+    case 4:r={groups:[G(2,GA),G(2,GB)],text:'El doble del doble: <b>'+m+' → '+(2*m)+' → '+R+'</b>.'};break;
+    case 5:r={groups:[G(5,GS)],text:m%2===0?'La mitad de '+m+' es '+(m/2)+', ponle un cero: <b>'+R+'</b>.':'Cuenta de 5 en 5: <b>'+(hide?range(1,m-1).map(function(i){return 5*i;}).concat(['?']):range(1,m).map(function(i){return 5*i;})).join(', ')+'</b>.'};break;
+    case 6:r={groups:[G(5,GA),G(1,GB)],text:'La del 5 y uno más: <b>'+(5*m)+' + '+m+' = '+R+'</b>.'};break;
+    case 7:r={groups:[G(5,GA),G(2,GB)],text:'La del 5 más la del 2: <b>'+(5*m)+' + '+(2*m)+' = '+R+'</b>.'};break;
+    case 8:r={groups:[G(4,GA),G(4,GB)],text:'Doble, doble y doble: <b>'+m+' → '+(2*m)+' → '+(4*m)+' → '+R+'</b>.'};break;
+    case 9:r={groups:[G(9,GS)],text:'Es 10 × '+m+' menos '+m+': <b>'+(10*m)+' − '+m+' = '+R+'</b>.'};break;
+    default:r={groups:[G(10,GS)],text:'Ponle un cero al '+m+': <b>'+R+'</b>.'};
   }
   var x='';
   if(t===m&&t>1)x='¡Es un cuadrado! '+t+' filas de '+t+' forman un cuadrado perfecto.';
-  if(t===9&&p>=10){var s=String(p);x='Truco: las cifras de '+p+' suman 9 ('+s[0]+' + '+s[1]+' = 9). También sirve el truco de los dedos.';}
-  if(t===6&&m%2===0)x='Truco: 6 por un número par termina en ese número: 6 × '+m+' = '+p+'.';
-  if((t===7&&m===8)||(t===8&&m===7))x='Truco: 5, 6, 7, 8 → 56 = 7 × 8.';
+  if(t===9&&p>=10){var s=String(p);x=hide?'Truco: las cifras del resultado siempre suman 9. También sirve el truco de los dedos.':'Truco: las cifras de '+p+' suman 9 ('+s[0]+' + '+s[1]+' = 9). También sirve el truco de los dedos.';}
+  if(t===6&&m%2===0)x=hide?'Truco: 6 por un número par termina en ese mismo número: 6 × '+m+' termina en '+(m%10)+'.':'Truco: 6 por un número par termina en ese número: 6 × '+m+' = '+p+'.';
+  if((t===7&&m===8)||(t===8&&m===7))x=hide?'Truco: dilo en orden: 5, 6, 7, 8… ¡el 7 × 8 está escondido ahí!':'Truco: 5, 6, 7, 8 → 56 = 7 × 8.';
   r.extra=x;return r;
 }
-function dotsHTML(rows,cols,groups){
+function dotsHTML(rows,cols,groups,hide){
   var d=rows*cols>60?11:14;
-  return '<div class="dots-wrap" style="--d:'+d+'px">'+groups.map(function(g){return '<div class="dgroup" style="--dc:'+g.color+'"><div class="dots" style="grid-template-columns:repeat('+cols+','+d+'px)">'+new Array(g.rows*cols+1).join('<i></i>')+'</div><span class="dlabel">'+g.rows+' × '+cols+' = '+(g.rows*cols)+'</span></div>';}).join('')+'</div>';
+  return '<div class="dots-wrap" style="--d:'+d+'px">'+groups.map(function(g){return '<div class="dgroup" style="--dc:'+g.color+'"><div class="dots" style="grid-template-columns:repeat('+cols+','+d+'px)">'+new Array(g.rows*cols+1).join('<i></i>')+'</div><span class="dlabel">'+g.rows+' × '+cols+' = '+(hide&&groups.length===1?'?':g.rows*cols)+'</span></div>';}).join('')+'</div>';
 }
 function hintHTML(a,b){
-  var e=easier(a,b),t=e[0],m=e[1],s=strategy(t,m);
+  var e=easier(a,b),t=e[0],m=e[1],s=strategy(t,m,true);
   var filas=t===1?'1 fila':t+' filas';
   var intro=(t!==a)?'<p class="h-txt"><b>'+a+' × '+b+'</b> es lo mismo que <b>'+t+' × '+m+'</b>: '+filas+' de '+m+' puntitos.</p>':'<p class="h-txt">Imagina <b>'+filas+'</b> de <b>'+m+'</b> puntitos.</p>';
-  return '<div class="h-head"><svg class="i"><use href="#i-bulb"/></svg> Pista</div>'+intro+dotsHTML(t,m,s.groups)+'<p class="h-txt">'+s.text+'</p>'+(s.extra?'<p class="h-extra">'+s.extra+'</p>':'');
+  return '<div class="h-head"><svg class="i"><use href="#i-bulb"/></svg> Pista</div>'+intro+dotsHTML(t,m,s.groups,true)+'<p class="h-txt">'+s.text+'</p>'+(s.extra?'<p class="h-extra">'+s.extra+'</p>':'');
 }
 
 /* ---------- Elegir multiplicación (repite más las que cuestan) ---------- */
