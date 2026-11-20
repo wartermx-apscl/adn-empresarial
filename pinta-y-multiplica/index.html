@@ -3,7 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Juego para aprender las tablas de multiplicar pintando dibujos.">
 <meta name="theme-color" content="#F1EEF8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pinta y Multiplica">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23FFC23D'/%3E%3Cpath d='M11 11L29 29' stroke='%23F2456A' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M29 11L11 29' stroke='%2311968B' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E">
 </head>
 <body>
 <title>Pinta y Multiplica</title>
@@ -861,7 +866,7 @@ function renderHome(){
     tile('go','works','frame','#7A52E0','#FFFFFF','Mis obras',g?(g===1?'1 dibujo terminado':g+' dibujos terminados'):'Aquí se guardan tus dibujos')+
     tile('go','parents','heart','#F2456A','#FFFFFF','Para papá y mamá','Su avance y consejos para ayudarla')+
   '</div>'+
-  '<div class="card practice"><div><h2 class="h-m">Estoy practicando</h2><p class="muted">Toca las tablas para elegirlas.</p></div>'+chipsHTML()+'</div>'+
+  '<div class="card practice"><div><h2 class="h-m">Tablas que estoy practicando</h2><p class="muted">Las de color son las que te va a preguntar el juego. Toca un número para agregarlo o quitarlo.</p></div>'+chipsHTML()+'</div>'+
   '<div class="reward"><svg class="i solid"><use href="#i-star"/></svg><span class="rw-txt">'+(nx?'Te faltan <b>'+(nx.need-state.stars)+' ★</b> para desbloquear '+nx.label+'.':'¡Ya desbloqueaste todo! Eres una gran artista.')+'</span>'+(nx?'<span class="rw-bar" aria-hidden="true"><i style="width:'+pct+'%"></i></span>':'')+'</div>';
 }
 
@@ -1057,7 +1062,7 @@ function renderParents(){
     '<p class="heat-info" id="heat-info" aria-live="polite">Toca un cuadro para ver el detalle.</p></div>'+
   '<div class="p-side"><div class="card p-card"><h2 class="h-m">Las que más le cuestan</h2>'+
     (hard.length?'<ul class="hard-list">'+hard.map(function(h){var e=easier(h.r,h.c);return '<li><b>'+h.r+' × '+h.c+' = '+(h.r*h.c)+'</b><button class="btn small" data-act="openTable" data-v="'+e[0]+'">Ver el truco</button></li>';}).join('')+'</ul>':'<p class="muted">Aún no hay errores registrados. Cuando juegue un rato, aquí aparecen las multiplicaciones en las que más se equivoca, con su truco.</p>')+'</div>'+
-    '<div class="card p-card"><h2 class="h-m">Tablas que practica</h2><p class="muted">El juego solo pregunta las tablas marcadas.</p>'+chipsHTML()+
+    '<div class="card p-card"><h2 class="h-m">Tablas que practica</h2><p class="muted">Los círculos de color son las tablas que pregunta el juego. Toca un número para agregarla o quitarla.</p>'+chipsHTML()+
     '<p class="muted small">Orden recomendado para aprenderlas:</p><div class="order">'+order+'</div></div></div></div>'+
   '<div class="card p-card"><h2 class="h-m">Cómo funciona el juego</h2><p>Cada parte de un dibujo se pinta resolviendo una multiplicación de las tablas marcadas. El juego pregunta más seguido las que le cuestan y menos las que ya domina. Si se equivoca, le muestra un truco con puntitos y la deja intentar otra vez; nunca le quita estrellas. Con las estrellas desbloquea dibujos y colores mágicos.</p><p>Para cuando se distrae: si pasan unos segundos sin contestar, la respuesta se mueve y el juego la llama por su nombre; a la segunda vez le resalta la pista. Cada 3 aciertos seguidos celebra la racha, y cada 10 multiplicaciones le sugiere una pausa corta.</p><p class="muted">Una multiplicación cuenta como dominada cuando la contesta bien a la primera, sin pista, varias veces.</p></div>'+
   '<div class="card p-card"><h2 class="h-m">Si se distrae fácil</h2><ul class="focus-list">'+FOCUS.map(function(a){return '<li><b>'+a[0]+'</b><span>'+a[1]+'</span></li>';}).join('')+'</ul></div>'+
@@ -1146,6 +1151,8 @@ document.addEventListener('keydown',function(e){
 /* ---------- Arranque ---------- */
 function boot(data){
   state=(data&&data.state)?Object.assign(DEFAULT(),data.state):load();
+  /* Pide al navegador que no borre el avance guardado cuando le falte espacio */
+  try{var st=navigator.storage;if(st&&st.persisted&&st.persist)st.persisted().then(function(p){if(!p)return st.persist();}).catch(function(){});}catch(e){}
   go('home');
 }
 try{var hot=window.claude&&window.claude.hot;if(hot&&hot.snapshot)hot.snapshot(function(){return {state:state};});}catch(e){}
