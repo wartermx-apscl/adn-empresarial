@@ -131,7 +131,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .btn:active,.icon-btn:active,.key:active,.stars-pill:active{transform:translateY(4px);box-shadow:0 1px 0 var(--d,#E6DAF2)}
 .row-btns{display:flex;flex-wrap:wrap;gap:12px}
 .sec-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px}
-.sec-head > div{display:grid;gap:6px;min-width:0}
+.sec-head > div:first-child{display:grid;gap:6px;min-width:0}
 .sec-sub{margin-top:6px}
 .tape{position:absolute;width:86px;height:24px;border-radius:3px;background:rgba(255,201,77,.55);box-shadow:0 1px 2px rgba(91,46,140,.1);z-index:2}
 .tape.t1{top:-10px;left:18px;transform:rotate(-8deg)}
@@ -1032,8 +1032,10 @@ function renderHome(){
 }
 
 function renderPick(){
-  var head=override?'<span class="ovr"><span class="pill">Pintando con la tabla del '+override[0]+'</span><button class="btn small" data-act="clearOverride">Usar mis tablas</button></span>':chipsHTML();
-  $('#s-pick').innerHTML='<div class="sec-head"><div><p class="eyebrow">Galería de dibujos</p><h1 class="h-l">Elige un dibujo</h1><p class="muted">Cada parte del dibujo es una multiplicación. ¡Resuélvela y se pinta!</p></div>'+head+'</div>'+
+  var row=override
+    ?'<div class="card practice"><div><h2 class="h-s">Pintando con la tabla del '+override[0]+'</h2><p class="muted">Cada parte del dibujo será una multiplicación de esa tabla.</p></div><button class="btn small" data-act="clearOverride">Usar mis tablas</button></div>'
+    :'<div class="card practice"><div><h2 class="h-s">Tablas que estoy practicando</h2><p class="muted">Toca un número para agregarlo o quitarlo.</p></div>'+chipsHTML()+'</div>';
+  $('#s-pick').innerHTML='<div class="sec-head"><div><p class="eyebrow">Galería de dibujos</p><h1 class="h-l">Elige un dibujo</h1><p class="muted">Cada parte del dibujo es una multiplicación. ¡Resuélvela y se pinta!</p></div></div>'+row+
   '<div class="pick-grid">'+DRAWINGS.map(function(d){
     var a=artState(d.id),n=d.regions.length,k=a.f.filter(Boolean).length,locked=state.stars<d.need;
     var meta=locked?'Junta '+d.need+' ★ para abrirlo':(a.done?'<span class="badge ok">¡Terminado!</span>':'<span class="minibar"><i style="width:'+(k/n*100)+'%"></i></span>'+k+'/'+n);
