@@ -663,8 +663,14 @@ var state=DEFAULT();
 
 var current='home',curId=null,brush='#FF4D5E',paintStars=0,override=null,curT=1,expN=3,flipped=false,quiz=null,activeQ=null,sheetCancel=null,cfFn=null,recent=[],streak=0,sessionN=0;
 function praise(){if(state.name&&Math.random()<.4)return rnd(['¡Muy bien, ','¡Bravo, ','¡Eso es, ','¡Súper, '])+esc(state.name)+'!';return rnd(PRAISE);}
-function esVoice(){try{var vs=window.speechSynthesis.getVoices()||[];return vs.filter(function(x){return /^es[-_]MX/i.test(x.lang);})[0]||vs.filter(function(x){return /^es/i.test(x.lang);})[0]||null;}catch(e){return null;}}
-function say(txt){try{var s=window.speechSynthesis;if(!s||!window.SpeechSynthesisUtterance)return false;s.cancel();var u=new SpeechSynthesisUtterance(txt);u.lang='es-MX';u.rate=.9;var v=esVoice();if(v)u.voice=v;s.speak(u);return true;}catch(e){return false;}}
+/* Voz de mujer: los navegadores no dicen si una voz es de hombre o de mujer, así que se elige por nombre
+   (Paulina, Mónica, Sabina, Dalia… y las voces de Google en español, que son de mujer). Si solo hay voz de hombre, se sube el tono. */
+var FEM=/paulina|m[oó]nica|marisol|ang[eé]lica|soledad|isabel|sabina|helena|laura|elvira|dalia|paloma|lupe|pen[eé]lope|luc[ií]a|conchita|\bm[ií]a\b|esperanza|ximena|carla|renata|francisca|catalina|camila|elena|valentina|beatriz|\bflo\b|sandy|shelley|grandma|female|mujer|femenin|woman/i;
+var MAS=/juan|jorge|diego|carlos|ra[uú]l|pablo|enrique|[aá]lvaro|gerardo|tom[aá]s|jaime|eddy|reed|rocko|grandpa|andr[eé]s|emilio|alonso|federico|\bmale\b|hombre|masculin/i;
+function isFem(v){var n=(v&&v.name)||'';return FEM.test(n)||(/google/i.test(n)&&!MAS.test(n));}
+function esVoice(){try{var vs=window.speechSynthesis.getVoices()||[],best=null,bs=-99;vs.forEach(function(v){var l=String(v.lang||'').toLowerCase().replace('_','-');if(l.indexOf('es')!==0)return;var n=v.name||'',s=l==='es-mx'?3:(l==='es-us'||l==='es-419'?2:1);if(FEM.test(n))s+=6;else if(MAS.test(n))s-=6;else if(/google/i.test(n))s+=4;if(s>bs){bs=s;best=v;}});return best;}catch(e){return null;}}
+function voicePitch(v){return v&&!isFem(v)?1.25:1.05;}
+function say(txt){try{var s=window.speechSynthesis;if(!s||!window.SpeechSynthesisUtterance)return false;s.cancel();var u=new SpeechSynthesisUtterance(txt);u.lang='es-MX';u.rate=.9;var v=esVoice();if(v)u.voice=v;u.pitch=voicePitch(v);s.speak(u);return true;}catch(e){return false;}}
 var mbK={1:1,2:1,5:1,10:1};
 function activeTables(){return override||state.tables;}
 function fk(a,b){return Math.min(a,b)+'x'+Math.max(a,b);}
@@ -1026,8 +1032,8 @@ function speakTable(t){
   if(!s||typeof window.SpeechSynthesisUtterance==='undefined'){toast('Este dispositivo no puede leer en voz alta.');return;}
   try{
     s.cancel();
-    var voices=s.getVoices()||[],v=voices.filter(function(x){return /^es[-_]MX/i.test(x.lang);})[0]||voices.filter(function(x){return /^es/i.test(x.lang);})[0];
-    var mk=function(txt,on,end){var u=new SpeechSynthesisUtterance(txt);u.lang='es-MX';u.rate=.85;if(v)u.voice=v;if(on)u.onstart=on;if(end)u.onend=end;return u;};
+    var v=esVoice(),pt=voicePitch(v);
+    var mk=function(txt,on,end){var u=new SpeechSynthesisUtterance(txt);u.lang='es-MX';u.rate=.85;u.pitch=pt;if(v)u.voice=v;if(on)u.onstart=on;if(end)u.onend=end;return u;};
     var clear=function(){$$('.tl-row').forEach(function(r){r.classList.remove('speaking');});};
     s.speak(mk('Tabla del '+t+'.'));
     range(1,10).forEach(function(m){s.speak(mk(t+' por '+m+', '+(t*m)+'.',function(){if(current!=='table'||curT!==t)return;clear();var row=$('.tl-row[data-v="'+m+'"]');if(row)row.classList.add('open','speaking');},m===10?clear:null));});
@@ -1071,7 +1077,7 @@ function renderParents(){
   '<div class="card p-card"><h2 class="h-m">Ajustes</h2>'+
     '<form id="p-name" class="set-row" autocomplete="off"><label for="p-name-in">Nombre</label><span class="nf-row" style="flex:1;max-width:420px"><input id="p-name-in" type="text" maxlength="16" value="'+esc(state.name)+'" placeholder="Nombre de tu hija"><button class="btn small" type="submit">Guardar</button></span></form>'+
     '<div class="set-row"><span>Sonidos del juego</span><button class="btn small" data-act="sound">'+(state.sound?'Apagar sonidos':'Prender sonidos')+'</button></div>'+
-    '<div class="set-row"><span>Leer cada pregunta en voz alta</span><button class="btn small" data-act="voice">'+(state.voice?'Apagar la voz':'Prender la voz')+'</button></div>'+
+    '<div class="set-row"><span>Leer cada pregunta en voz alta</span><span class="row-btns"><button class="btn small" data-act="testVoice">Probar la voz</button><button class="btn small" data-act="voice">'+(state.voice?'Apagar la voz':'Prender la voz')+'</button></span></div>'+
     '<div class="set-row"><span>Borrar estrellas, avance y dibujos de este dispositivo</span><button class="btn small danger" data-act="resetAll">Borrar avance</button></div></div>';
 }
 
@@ -1109,6 +1115,7 @@ var A={
   quizAgain:function(){quiz.res=[];quiz.stars0=state.stars;renderQuiz();},
   qlen:function(v){state.qlen=+v;save();quiz.n=+v;quiz.res=[];quiz.stars0=state.stars;renderQuiz();},
   sayQ:function(){if(activeQ&&activeQ.say)activeQ.say();},
+  testVoice:function(){if(!say('¡Hola'+(state.name?', '+state.name:'')+'! ¿Cuánto es 7 por 6?')){toast('Este dispositivo no puede leer en voz alta.');return;}var v=esVoice();toast(v?'Voz: '+esc(v.name)+(isFem(v)?'':' (no encontré voz de mujer en este aparato; le subí el tono)'):'Se usa la voz en español del aparato.');},
   voice:function(){state.voice=!state.voice;save();renderParents();if(state.voice&&!say('Listo. Voy a leer las preguntas.'))toast('Este dispositivo no puede leer en voz alta.');},
   flip:function(){flipped=!flipped;$('#flip-grid').classList.toggle('flipped',flipped);$('#flip-eq').textContent=flipped?'5 filas de 3 = 15':'3 filas de 5 = 15';sfx('tap');},
   mb:function(v){var n=+v;if(mbK[n])delete mbK[n];else mbK[n]=1;updateBoard();sfx('tap');},
@@ -1151,6 +1158,8 @@ document.addEventListener('keydown',function(e){
 /* ---------- Arranque ---------- */
 function boot(data){
   state=(data&&data.state)?Object.assign(DEFAULT(),data.state):load();
+  /* Algunos navegadores cargan la lista de voces hasta que se les pide */
+  try{if(window.speechSynthesis){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){};}}catch(e){}
   /* Pide al navegador que no borre el avance guardado cuando le falte espacio */
   try{var st=navigator.storage;if(st&&st.persisted&&st.persist)st.persisted().then(function(p){if(!p)return st.persist();}).catch(function(){});}catch(e){}
   go('home');
