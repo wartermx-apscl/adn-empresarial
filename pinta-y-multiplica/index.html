@@ -740,6 +740,134 @@ var DRAWINGS=[
  '<path d="M168 320 H204 Q228 360 236 394 H130 Q142 360 168 320 Z"/>'
 ],decor:'<path d="'+rays(326,74,44,58,10)+'"/><path class="thin" d="M141 220 V250 M126 235 H156 M233 220 V250 M218 235 H248"/><circle class="ink" cx="197" cy="290" r="3.5"/><path class="thin dash" d="M238 122 q-8 -9 0 -18 q8 -9 0 -18"/><path class="thin" d="M52 192 q8 -8 16 0 q8 -8 16 0 M98 216 q6 -6 12 0 q6 -6 12 0"/><path class="thin" d="M40 352 q4 -12 8 0 M74 372 q4 -12 8 0 M298 360 q4 -12 8 0 M350 372 q4 -12 8 0"/>'}
 ];
+/* Más dibujos: 5 abiertos desde el inicio y los demás se desbloquean con estrellas */
+var SPARK4=function(x,y,s){return 'M'+x+' '+y+' l'+(.3*s)+' '+(.7*s)+' '+(.7*s)+' '+(.3*s)+' '+(-.7*s)+' '+(.3*s)+' '+(-.3*s)+' '+(.7*s)+' '+(-.3*s)+' '+(-.7*s)+' '+(-.7*s)+' '+(-.3*s)+' '+(.7*s)+' '+(-.3*s)+'z ';};
+DRAWINGS.push(
+{id:'flor',name:'Florecita',need:0,regions:[
+ BG,
+ '<path d="M6 334 H394'+BR+'"/>',
+ '<path d="M194 200 C190 250 196 290 194 300 L206 300 C204 290 210 250 206 200 Z"/>',
+ '<path d="M196 262 C170 236 136 240 124 252 C140 272 172 276 196 268 Z"/>',
+ '<path d="M204 244 C230 218 264 222 276 234 C260 254 228 258 204 250 Z"/>',
+ '<path d="M138 300 H262 L246 378 Q244 386 236 386 H164 Q156 386 154 378 Z"/>',
+ '<rect x="128" y="286" width="144" height="26" rx="8"/>',
+ '<ellipse cx="200" cy="94" rx="24" ry="40"/>',
+ '<ellipse cx="246.8" cy="121" rx="24" ry="40" transform="rotate(60 246.8 121)"/>',
+ '<ellipse cx="246.8" cy="175" rx="24" ry="40" transform="rotate(120 246.8 175)"/>',
+ '<ellipse cx="200" cy="202" rx="24" ry="40"/>',
+ '<ellipse cx="153.2" cy="175" rx="24" ry="40" transform="rotate(60 153.2 175)"/>',
+ '<ellipse cx="153.2" cy="121" rx="24" ry="40" transform="rotate(120 153.2 121)"/>',
+ '<circle cx="200" cy="148" r="30"/>'
+],decor:'<circle class="ink" cx="190" cy="144" r="3.5"/><circle class="ink" cx="210" cy="144" r="3.5"/><path class="thin" d="M191 156 Q200 164 209 156"/><path class="thin" d="M194 265 Q160 256 130 252 M206 248 Q240 238 270 234"/><path class="thin" d="M200 342 C192 334 180 340 186 350 L200 362 L214 350 C220 340 208 334 200 342 Z"/><path class="thin" d="'+SPARK4(44,52,20)+SPARK4(340,86,18)+SPARK4(70,200,14)+'"/>'},
+{id:'conejito',name:'Conejito',need:0,regions:[
+ BG,
+ '<path d="M6 316 Q200 296 394 316'+BR+'"/>',
+ '<ellipse cx="164" cy="96" rx="24" ry="66" transform="rotate(-12 164 96)"/>',
+ '<ellipse cx="236" cy="96" rx="24" ry="66" transform="rotate(12 236 96)"/>',
+ '<ellipse cx="200" cy="290" rx="74" ry="64"/>',
+ '<ellipse cx="160" cy="348" rx="28" ry="14"/><ellipse cx="240" cy="348" rx="28" ry="14"/>',
+ '<ellipse cx="200" cy="300" rx="42" ry="40"/>',
+ '<circle cx="200" cy="186" r="62"/>',
+ '<ellipse cx="164" cy="92" rx="11" ry="46" transform="rotate(-12 164 92)"/><ellipse cx="236" cy="92" rx="11" ry="46" transform="rotate(12 236 92)"/>',
+ '<circle cx="166" cy="206" r="13"/><circle cx="234" cy="206" r="13"/>',
+ '<path d="M192 194 H208 L200 204 Z"/>',
+ '<path d="M296 300 Q313 288 330 300 L316 372 Q313 380 310 372 Z"/>',
+ '<path d="M306 294 Q292 266 300 254 Q312 272 312 290 Q318 262 334 258 Q330 282 318 296 Z"/>',
+ '<circle cx="60" cy="342" r="12"/><circle cx="100" cy="360" r="10"/>'
+],decor:'<ellipse class="ink" cx="180" cy="180" rx="6" ry="8"/><ellipse class="ink" cx="220" cy="180" rx="6" ry="8"/><circle class="shine" cx="182" cy="176" r="2.2"/><circle class="shine" cx="222" cy="176" r="2.2"/><path class="thin" d="M200 204 Q196 214 188 212 M200 204 Q204 214 212 212"/><path class="thin" d="M166 214 L140 220 M168 206 L140 204 M234 214 L260 220 M232 206 L260 204"/><path class="thin" d="M302 318 l11 2 M300 336 l10 2 M306 354 l7 1"/><path class="thin" d="M150 344 v8 M160 344 v8 M232 344 v8 M242 344 v8"/><path class="thin" d="M60 354 V378 M100 370 V388"/>'},
+{id:'buho',name:'Búho',need:15,regions:[
+ BG,
+ '<circle cx="324" cy="78" r="38"/>',
+ star(70,80,16,7)+star(130,40,10,4.5)+star(250,40,12,5)+star(370,170,12,5),
+ '<path d="M6 318 Q200 300 394 330 V352 Q200 326 6 342 Z"/>',
+ '<path d="M320 334 Q340 356 362 350 Q348 330 320 334 Z"/><path d="M60 332 Q44 356 22 352 Q34 330 60 332 Z"/>',
+ '<path d="M132 120 L124 68 L172 104 Z"/><path d="M268 120 L276 68 L228 104 Z"/>',
+ '<path d="M200 96 C272 96 296 160 292 230 C288 300 252 330 200 330 C148 330 112 300 108 230 C104 160 128 96 200 96 Z"/>',
+ '<path d="M112 196 C88 230 92 288 132 306 C134 260 132 222 112 196 Z"/>',
+ '<path d="M288 196 C312 230 308 288 268 306 C266 260 268 222 288 196 Z"/>',
+ '<path d="M200 200 C246 200 262 250 256 288 C250 318 226 326 200 326 C174 326 150 318 144 288 C138 250 154 200 200 200 Z"/>',
+ '<circle cx="164" cy="160" r="34"/><circle cx="236" cy="160" r="34"/>',
+ '<circle cx="166" cy="164" r="16"/><circle cx="234" cy="164" r="16"/>',
+ '<path d="M190 188 H210 L200 210 Z"/>',
+ '<ellipse cx="176" cy="330" rx="16" ry="9"/><ellipse cx="224" cy="330" rx="16" ry="9"/>'
+],decor:'<circle class="ink" cx="168" cy="166" r="8"/><circle class="ink" cx="232" cy="166" r="8"/><circle class="shine" cx="171" cy="162" r="3"/><circle class="shine" cx="235" cy="162" r="3"/><path class="thin" d="M176 236 q8 8 16 0 q8 8 16 0 q8 8 16 0 M168 262 q8 8 16 0 q8 8 16 0 q8 8 16 0 q8 8 16 0 M176 288 q8 8 16 0 q8 8 16 0 q8 8 16 0"/><circle class="thin" cx="312" cy="70" r="7"/><circle class="thin" cx="336" cy="94" r="5"/>'},
+{id:'cupcake',name:'Cupcake',need:25,regions:[
+ BG,
+ '<path d="M6 336 H394'+BR+'"/>',
+ star(70,90,22,10)+star(330,80,18,8)+star(350,200,12,5),
+ '<path d="M66 262 C30 240 38 206 56 208 C62 209 66 214 66 220 C66 214 70 209 76 208 C94 206 102 240 66 262 Z"/>',
+ '<ellipse cx="200" cy="358" rx="96" ry="12"/>',
+ '<path d="M128 228 H272 L250 350 Q248 358 240 358 H160 Q152 358 150 350 Z"/>',
+ '<path d="M118 232 Q112 200 150 196 Q160 170 200 172 Q240 170 250 196 Q288 200 282 232 Q282 246 266 246 H134 Q118 246 118 232 Z"/>',
+ '<path d="M146 186 Q140 160 170 156 Q178 134 200 136 Q222 134 230 156 Q260 160 254 186 Q252 198 238 198 H162 Q148 198 146 186 Z"/>',
+ '<path d="M172 148 Q170 126 192 122 Q198 100 210 112 Q232 118 228 146 Q226 156 214 156 H186 Q174 156 172 148 Z"/>',
+ '<circle cx="206" cy="98" r="16"/>'
+],decor:'<path class="thin" d="M162 248 L170 354 M184 248 L188 356 M200 248 V356 M216 248 L212 356 M238 248 L230 354"/><path class="thin" d="M150 222 l8 -4 M186 230 l-6 -6 M228 226 l8 4 M256 216 l6 -6 M172 180 l8 -3 M222 176 l7 4 M196 146 l-4 -6"/><path class="thin" d="M212 84 Q218 66 234 60"/><circle class="shine" cx="200" cy="92" r="4"/>'},
+{id:'pulpo',name:'Pulpo',need:30,regions:[
+ BG,
+ '<path d="M6 340 Q120 324 220 340 T394 334'+BR+'"/>',
+ '<path d="M44 340 C30 300 60 284 46 248 C40 230 58 222 56 206 C72 228 60 248 68 270 C78 300 56 316 62 340 Z"/>',
+ '<path d="M356 340 C370 300 340 284 354 248 C360 230 342 222 344 206 C328 228 340 248 332 270 C322 300 344 316 338 340 Z"/>',
+ '<path d="M140 230 C110 250 96 290 70 296 C56 300 56 316 72 316 C110 316 130 280 158 252 Z"/>',
+ '<path d="M242 252 C270 280 290 316 328 316 C344 316 344 300 330 296 C304 290 290 250 260 230 Z"/>',
+ '<path d="M170 246 C160 280 150 314 132 330 C124 338 134 350 146 342 C172 324 186 290 192 252 Z"/>',
+ '<path d="M208 252 C214 290 228 324 254 342 C266 350 276 338 268 330 C250 314 240 280 230 246 Z"/>',
+ '<path d="M200 70 C276 70 300 130 296 180 C292 236 254 262 200 262 C146 262 108 236 104 180 C100 130 124 70 200 70 Z"/>',
+ '<circle cx="160" cy="118" r="12"/><circle cx="236" cy="110" r="9"/><circle cx="262" cy="144" r="7"/>',
+ '<circle cx="150" cy="200" r="13"/><circle cx="250" cy="200" r="13"/>',
+ '<path d="M244 84 L222 70 Q218 84 222 98 Z"/><path d="M244 84 L266 70 Q270 84 266 98 Z"/><circle cx="244" cy="84" r="6"/>',
+ '<circle cx="80" cy="96" r="12"/><circle cx="104" cy="60" r="8"/><circle cx="60" cy="140" r="7"/>',
+ '<path d="M300 370 Q300 340 330 340 Q360 340 360 370 Z"/>'
+],decor:'<ellipse class="ink" cx="172" cy="178" rx="8" ry="11"/><ellipse class="ink" cx="228" cy="178" rx="8" ry="11"/><circle class="shine" cx="175" cy="173" r="3"/><circle class="shine" cx="231" cy="173" r="3"/><path class="thin" d="M186 206 Q200 220 214 206"/><circle class="thin" cx="152" cy="316" r="3.5"/><circle class="thin" cx="164" cy="298" r="3.5"/><circle class="thin" cx="248" cy="316" r="3.5"/><circle class="thin" cx="236" cy="298" r="3.5"/><path class="thin" d="M330 342 V368 M314 346 L320 368 M346 346 L340 368"/><path class="thin" d="M240 36 q14 -10 28 0 t28 0"/><circle class="shine" cx="76" cy="91" r="3"/>'},
+{id:'pastel',name:'Pastel',need:40,regions:[
+ BG,
+ '<path d="M6 340 H394'+BR+'"/>',
+ '<ellipse cx="62" cy="110" rx="30" ry="36"/>',
+ '<ellipse cx="340" cy="140" rx="28" ry="34"/>',
+ '<ellipse cx="200" cy="338" rx="150" ry="18"/>',
+ '<rect x="90" y="250" width="220" height="86" rx="12"/>',
+ '<path d="M90 258 Q90 246 102 246 H298 Q310 246 310 258 V266 Q300 284 288 266 Q276 288 264 266 Q252 284 240 266 Q228 288 216 266 Q204 284 192 266 Q180 288 168 266 Q156 284 144 266 Q132 288 120 266 Q108 284 96 266 Q92 266 90 262 Z"/>',
+ '<rect x="120" y="176" width="160" height="74" rx="12"/>',
+ '<path d="M120 184 Q120 172 132 172 H268 Q280 172 280 184 V190 Q270 208 258 190 Q246 210 234 190 Q222 208 210 190 Q198 210 186 190 Q174 208 162 190 Q150 210 138 190 Q128 206 120 188 Z"/>',
+ '<circle cx="150" cy="226" r="9"/><circle cx="200" cy="230" r="9"/><circle cx="250" cy="226" r="9"/>',
+ '<rect x="150" y="116" width="100" height="60" rx="10"/>',
+ '<rect x="160" y="70" width="14" height="46" rx="4"/><rect x="193" y="62" width="14" height="54" rx="4"/><rect x="226" y="70" width="14" height="46" rx="4"/>',
+ '<path d="M167 64 Q158 50 167 36 Q176 50 167 64 Z"/><path d="M200 56 Q191 42 200 28 Q209 42 200 56 Z"/><path d="M233 64 Q224 50 233 36 Q242 50 233 64 Z"/>'
+],decor:'<path class="thin" d="M100 304 q12.5 -10 25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0 t25 0"/><path class="thin" d="M158 146 q10.5 -8 21 0 t21 0 t21 0 t21 0"/><path class="thin" d="M62 146 Q72 200 58 250 M340 174 Q330 220 344 262"/><ellipse class="shine" cx="52" cy="98" rx="6" ry="10"/><ellipse class="shine" cx="330" cy="128" rx="5" ry="9"/>'},
+{id:'castillo',name:'Castillo',need:50,regions:[
+ BG,
+ '<path d="M64 110 Q42 110 46 90 Q50 70 76 76 Q86 52 112 60 Q138 52 144 78 Q168 78 166 98 Q166 110 146 110 Z"/>',
+ '<circle cx="352" cy="104" r="22"/>',
+ '<path d="M6 330 Q200 312 394 330'+BR+'"/>',
+ '<path d="M130 340 V200 H150 V186 H170 V200 H190 V186 H210 V200 H230 V186 H250 V200 H270 V340 Z"/>',
+ '<rect x="70" y="150" width="70" height="190"/>',
+ '<rect x="260" y="150" width="70" height="190"/>',
+ '<path d="M62 152 L105 74 L148 152 Z"/>',
+ '<path d="M252 152 L295 74 L338 152 Z"/>',
+ '<path d="M176 340 V286 Q176 256 200 256 Q224 256 224 286 V340 Z"/>',
+ '<path d="M96 210 V196 Q96 186 105 186 Q114 186 114 196 V210 Z"/><path d="M286 210 V196 Q286 186 295 186 Q304 186 304 196 V210 Z"/>',
+ '<circle cx="200" cy="224" r="14"/>',
+ '<path d="M105 38 L136 47 L105 56 Z"/><path d="M295 38 L326 47 L295 56 Z"/>',
+ '<path d="M180 340 H220 Q240 370 248 394 H152 Q160 370 180 340 Z"/>'
+],decor:'<path d="'+rays(352,104,30,38,10)+'"/><path class="thin" d="M105 74 V36 M295 74 V36"/><path class="thin" d="M144 250 h22 M190 240 h20 M234 250 h22 M150 300 h18 M234 300 h18"/><path class="thin" d="M200 258 V340 M188 264 V340 M212 264 V340"/><circle class="ink" cx="218" cy="304" r="3"/><path class="thin" d="M70 260 H140 M260 260 H330"/>'},
+{id:'unicornio',name:'Unicornio',need:60,regions:[
+ BG,
+ star(60,70,18,8)+star(340,60,20,9)+star(350,170,12,5)+star(54,330,14,6),
+ '<path d="M150 290 C150 330 140 360 130 394 H270 C260 360 250 330 250 290 Z"/>',
+ '<path d="M184 108 L200 18 L216 108 Z"/>',
+ '<path d="M126 132 L118 64 L172 112 Z"/><path d="M274 132 L282 64 L228 112 Z"/>',
+ '<path d="M126 118 C92 116 72 146 84 176 C96 166 110 162 122 166 C116 150 118 132 126 118 Z"/>',
+ '<path d="M120 170 C86 172 70 206 86 236 C98 224 110 220 120 224 C112 206 112 188 120 170 Z"/>',
+ '<path d="M118 228 C86 236 78 270 98 296 C108 280 122 274 134 276 C122 262 116 246 118 228 Z"/>',
+ '<ellipse cx="200" cy="200" rx="92" ry="100"/>',
+ '<path d="M132 118 L128 80 L160 108 Z"/><path d="M268 118 L272 80 L240 108 Z"/>',
+ '<ellipse cx="200" cy="268" rx="58" ry="40"/>',
+ '<path d="M150 116 C158 92 190 86 204 104 C220 88 252 94 252 120 C236 112 222 116 212 128 C198 114 176 112 158 132 Z"/>',
+ '<ellipse cx="140" cy="236" rx="14" ry="9"/><ellipse cx="260" cy="236" rx="14" ry="9"/>',
+ '<circle cx="244" cy="128" r="10"/><circle cx="262" cy="140" r="9"/><circle cx="226" cy="124" r="8"/>'
+],decor:'<path class="thin" d="M187 95 L213 89 M190 76 L210 71 M194 57 L206 54"/><path d="M150 214 Q166 228 182 214 M218 214 Q234 228 250 214"/><path class="thin" d="M152 219 l-7 5 M160 223 l-4 7 M248 219 l7 5 M240 223 l4 7"/><ellipse class="ink" cx="184" cy="270" rx="5" ry="7"/><ellipse class="ink" cx="216" cy="270" rx="5" ry="7"/><path class="thin" d="M186 290 Q200 298 214 290"/><circle class="ink" cx="244" cy="128" r="3"/><circle class="ink" cx="262" cy="140" r="2.6"/><circle class="ink" cx="226" cy="124" r="2.4"/>'}
+);
+DRAWINGS.sort(function(a,b){return a.need-b.need;});
 var DR={};DRAWINGS.forEach(function(d){DR[d.id]=d;});
 var DEMO=['#FFE3EE','#FF7DB8','#FF7DB8','#8F5CF7',null,'#FFD43B','#FFD43B','#FFD43B',null,'#3A3550','#FFC8A2','oro'];
 
@@ -1035,7 +1163,7 @@ function renderPick(){
   var row=override
     ?'<div class="card practice"><div><h2 class="h-s">Pintando con la tabla del '+override[0]+'</h2><p class="muted">Cada parte del dibujo será una multiplicación de esa tabla.</p></div><button class="btn small" data-act="clearOverride">Usar mis tablas</button></div>'
     :'<div class="card practice"><div><h2 class="h-s">Tablas que estoy practicando</h2><p class="muted">Toca un número para agregarlo o quitarlo.</p></div>'+chipsHTML()+'</div>';
-  $('#s-pick').innerHTML='<div class="sec-head"><div><p class="eyebrow">Galería de dibujos</p><h1 class="h-l">Elige un dibujo</h1><p class="muted">Cada parte del dibujo es una multiplicación. ¡Resuélvela y se pinta!</p></div></div>'+row+
+  $('#s-pick').innerHTML='<div class="sec-head"><div><p class="eyebrow">Galería de dibujos</p><h1 class="h-l">Elige un dibujo</h1><p class="muted">'+DRAWINGS.length+' dibujos para pintar. Cada parte es una multiplicación: ¡resuélvela y se pinta! Con tus estrellas abres los que tienen candado.</p></div></div>'+row+
   '<div class="pick-grid">'+DRAWINGS.map(function(d){
     var a=artState(d.id),n=d.regions.length,k=a.f.filter(Boolean).length,locked=state.stars<d.need;
     var meta=locked?'Junta '+d.need+' ★ para abrirlo':(a.done?'<span class="badge ok">¡Terminado!</span>':'<span class="minibar"><i style="width:'+(k/n*100)+'%"></i></span>'+k+'/'+n);
