@@ -466,6 +466,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .set-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:12px;border-top:2px dashed var(--line);font-weight:700}
 .set-row label{font-weight:800}
 
+.code-box{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.code{font-family:var(--f-display);font-weight:600;font-size:1.7rem;letter-spacing:.06em;padding:8px 18px;border-radius:16px;background:var(--lilac-soft);color:var(--lilac-deep);font-variant-numeric:tabular-nums;-webkit-user-select:all;user-select:all}
+.remote-banner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;background:var(--mint-soft)}
+.remote-banner > div:first-child{display:grid;gap:4px}
+
 /* celebración, confirmación, instalar, aviso */
 .cel-sheet{width:min(580px,100%);text-align:center;display:grid;gap:12px;justify-items:center}
 .cel-top{display:flex;align-items:center;gap:10px}
@@ -918,7 +923,8 @@ var RAIN=['#FF5C93','#FF9F5A','#FFC94D','#9BE15D','#2EC4A6','#5FB3FF','#6D8BFF',
 var KEY='pinta-multiplica-v1';
 function DEFAULT(){return {v:1,name:'Chaparrita',sound:true,voice:false,qlen:5,tables:[2,3,4,5],stars:0,facts:{},art:{},gallery:[],answered:0,firstTry:0};}
 function load(){try{var raw=localStorage.getItem(KEY);if(raw){var s=JSON.parse(raw);return Object.assign(DEFAULT(),s);}}catch(e){}return DEFAULT();}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function save(){saveLocal();scheduleSync();}
 var state=DEFAULT();
 
 var current='home',curId=null,brush='#FF4D5E',paintStars=0,override=null,curT=1,expN=3,flipped=false,quiz=null,activeQ=null,sheetCancel=null,cfFn=null,recent=[],streak=0,sessionN=0;
@@ -1334,37 +1340,89 @@ function renderWorks(){
 }
 
 /* papá y mamá */
+/* ---------- Avance en la nube (Supabase) ----------
+   Pon aquí la URL de tu proyecto y su llave pública ("anon" o "publishable"). Nunca la llave secreta (service_role).
+   Si se dejan vacías, el avance solo se guarda en este aparato. */
+var NUBE={url:'',key:''};
+var cloudOn=!!(NUBE.url&&NUBE.key)&&!inFrame;
+var CODE_ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function newCode(){var a=[],r='';try{var u=new Uint32Array(8);crypto.getRandomValues(u);a=Array.prototype.slice.call(u);}catch(e){for(var i=0;i<8;i++)a.push(Math.floor(Math.random()*1e9));}for(var j=0;j<8;j++){r+=CODE_ABC[a[j]%CODE_ABC.length];if(j===3)r+='-';}return 'PINTA-'+r;}
+function normCode(s){s=String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');if(s.indexOf('PINTA')===0)s=s.slice(5);return s.length===8?'PINTA-'+s.slice(0,4)+'-'+s.slice(4):null;}
+function rpc(fn,body,keep){
+  var h={'Content-Type':'application/json','apikey':NUBE.key};
+  if(!/^sb_publishable_/.test(NUBE.key))h.Authorization='Bearer '+NUBE.key;
+  return fetch(NUBE.url.replace(/\/+$/,'')+'/rest/v1/rpc/'+fn,{method:'POST',headers:h,body:JSON.stringify(body),keepalive:!!keep})
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.status===204?null:r.text().then(function(t){return t?JSON.parse(t):null;});});
+}
+var syncT=null;
+function scheduleSync(){if(!cloudOn||!state.answered)return;if(!state.code){state.code=newCode();saveLocal();}clearTimeout(syncT);syncT=setTimeout(pushNow,4000);}
+function pushNow(keep){
+  if(!cloudOn||!state.answered||!state.code)return;clearTimeout(syncT);syncT=null;
+  var data=JSON.parse(JSON.stringify(state));delete data.watch;delete data.synced;
+  rpc('pinta_guardar',{p_codigo:state.code,p_nombre:state.name||'',p_datos:data},keep)
+    .then(function(){state.synced=Date.now();saveLocal();var el=$('#cloud-status');if(el)el.textContent=syncLabel();})
+    .catch(function(){});
+}
+var remote=null,remoteBusy=false,pS=null;
+function ago(ts){var t=typeof ts==='number'?ts:new Date(ts).getTime();if(!t)return '';var m=Math.round((Date.now()-t)/60000);if(m<1)return 'hace un momento';if(m<60)return 'hace '+m+' min';var h=Math.round(m/60);if(h<24)return 'hace '+h+(h===1?' hora':' horas');var d=Math.round(h/24);return 'hace '+d+(d===1?' día':' días');}
+function lastPractice(S){var t=0;for(var k in S.facts){if(S.facts[k]&&S.facts[k].t>t)t=S.facts[k].t;}return t;}
+function syncLabel(){return state.synced?'Guardado en la nube '+ago(state.synced)+'.':'Se guarda en la nube cada vez que contesta, si hay internet.';}
+function loadRemote(code,quiet){
+  remoteBusy=true;
+  return rpc('pinta_leer',{p_codigo:code}).then(function(r){
+    remoteBusy=false;
+    if(!r||!r.datos){if(!quiet)toast('No encontré ese código. Revisa que ella ya haya jugado con internet.');return false;}
+    remote={code:code,nombre:r.nombre,datos:r.datos,actualizado:r.actualizado};state.watch=code;saveLocal();
+    if(current==='parents'){renderParents();if(!quiet)try{window.scrollTo(0,0);}catch(e){}}return true;
+  }).catch(function(){remoteBusy=false;if(!quiet)toast('No pude conectarme a la nube. Revisa tu internet.');return false;});
+}
+function cloudCard(){
+  var h='<div class="card p-card"><h2 class="h-m">Ver su avance desde tu celular</h2>';
+  if(inFrame)return h+'<p class="muted">Esto funciona cuando abres el juego desde tu página.</p></div>';
+  if(!cloudOn)return h+'<p class="muted">Falta conectar la nube del juego. Cuando esté conectada, aquí aparecerá un código para ver su avance desde cualquier aparato.</p></div>';
+  return h+'<p>Este es el código de este aparato. En tu celular abre <b>legadolaboral.mx/pinta-y-multiplica/#papas</b> y escríbelo abajo. Solo se hace una vez.</p>'+
+    '<div class="code-box"><span class="code" id="my-code">'+esc(state.code||'')+'</span><button class="btn small" data-act="copyCode">Copiar código</button></div>'+
+    '<p class="muted small" id="cloud-status">'+syncLabel()+'</p>'+
+    '<form id="watch-form" class="set-row" autocomplete="off"><label for="watch-in">Ver el avance de otro aparato</label><span class="nf-row" style="flex:1;max-width:440px"><input id="watch-in" type="text" maxlength="20" placeholder="PINTA-XXXX-XXXX" autocapitalize="characters"><button class="btn small lilac" type="submit">Ver avance</button></span></form></div>';
+}
 function renderParents(){
+  if(cloudOn&&state.watch&&!remote&&!remoteBusy)loadRemote(state.watch,true);
+  var S=remote?Object.assign(DEFAULT(),remote.datos):state;pS=S;
   var cnt={'new':0,hard:0,learn:0,done:0},hard=[];
-  for(var r=1;r<=10;r++)for(var c=r;c<=10;c++){var f=state.facts[r+'x'+c];cnt[status(f)]++;if(f&&f.w>0)hard.push({r:r,c:c,f:f});}
+  for(var r=1;r<=10;r++)for(var c=r;c<=10;c++){var f=S.facts[r+'x'+c];cnt[status(f)]++;if(f&&f.w>0)hard.push({r:r,c:c,f:f});}
   hard.sort(function(a,b){return (b.f.w-b.f.c*.5)-(a.f.w-a.f.c*.5);});hard=hard.slice(0,6);
-  var pct=state.answered?Math.round(state.firstTry/state.answered*100):0;
+  var pct=S.answered?Math.round(S.firstTry/S.answered*100):0,lp=lastPractice(S);
   var stat=function(n,lab,cls){return '<div class="stat"><b>'+n+'</b><span><i class="sq '+cls+'"></i>'+lab+'</span></div>';};
   var heat='<table class="heat"><thead><tr><th scope="col">×</th>'+range(1,10).map(function(c){return '<th scope="col">'+c+'</th>';}).join('')+'</tr></thead><tbody>'+
-    range(1,10).map(function(r){return '<tr><th scope="row">'+r+'</th>'+range(1,10).map(function(c){var st=status(state.facts[fk(r,c)]);return '<td><button class="hc st-'+st+'" data-act="heat" data-v="'+r+','+c+'" aria-label="'+r+' por '+c+': '+STL[st]+'">'+(r*c)+'</button></td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
-  var nm=state.name?esc(state.name):'';
+    range(1,10).map(function(r){return '<tr><th scope="row">'+r+'</th>'+range(1,10).map(function(c){var st=status(S.facts[fk(r,c)]);return '<td><button class="hc st-'+st+'" data-act="heat" data-v="'+r+','+c+'" aria-label="'+r+' por '+c+': '+STL[st]+'">'+(r*c)+'</button></td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
+  var nm=S.name?esc(S.name):'';
   var order=[1,10,2,5,'→',3,4,9,'→',6,8,7].map(function(x){return x==='→'?'<em>→</em>':'<span style="--c:'+TCOL[x]+';--ct:'+tTxt(x)+'">'+x+'</span>';}).join('');
-  $('#s-parents').innerHTML='<div class="sec-head"><div><p class="eyebrow">Para papá y mamá</p><h1 class="h-l">'+(nm?'Así va '+nm:'Así va tu hija')+'</h1><p class="muted">El avance se guarda en este dispositivo.</p></div></div>'+
+  var banner=remote?'<div class="card p-card remote-banner"><div><p class="eyebrow">Desde la nube</p><h2 class="h-m">Avance de '+(nm||'su tablet')+'</h2><p class="muted">Se guardó '+ago(remote.actualizado)+' · código '+esc(remote.code)+'</p></div><div class="row-btns"><button class="btn small mint" data-act="refreshRemote">Actualizar</button><button class="btn small" data-act="exitRemote">Ver este aparato</button></div></div>':'';
+  var tablesCard=remote
+    ?'<div class="card p-card"><h2 class="h-m">Tablas que practica</h2><div class="tchips">'+S.tables.map(function(t){return '<span class="tchip" aria-pressed="true" style="--c:'+TCOL[t]+';--ct:'+tTxt(t)+';display:inline-grid;place-items:center">'+t+'</span>';}).join('')+'</div><p class="muted small">Las tablas se cambian desde su tablet.</p></div>'
+    :'<div class="card p-card"><h2 class="h-m">Tablas que practica</h2><p class="muted">Los círculos de color son las tablas que pregunta el juego. Toca un número para agregarla o quitarla.</p>'+chipsHTML()+'<p class="muted small">Orden recomendado para aprenderlas:</p><div class="order">'+order+'</div></div>';
+  $('#s-parents').innerHTML='<div class="sec-head"><div><p class="eyebrow">Para papá y mamá</p><h1 class="h-l">'+(nm?'Así va '+nm:'Así va tu hija')+'</h1><p class="muted">'+(remote?'Estás viendo su avance desde la nube.':'El avance se guarda en este dispositivo'+(cloudOn?' y en la nube.':'.'))+'</p></div></div>'+
+  banner+
   '<div class="p-grid"><div class="card p-card"><h2 class="h-m">Cuadro de avance</h2>'+
     '<div class="stats">'+stat(cnt.done,'Ya domina','st-done')+stat(cnt.learn,'Aprendiendo','st-learn')+stat(cnt.hard,'Le cuestan','st-hard')+stat(cnt['new'],'Sin practicar','st-new')+'</div>'+
-    '<p class="summary-line">'+(state.answered?state.answered+' respuestas · '+pct+'% bien a la primera · '+state.stars+' ★':'Todavía no hay respuestas. Cuando juegue, aquí verás cómo va cada multiplicación.')+'</p>'+
+    '<p class="summary-line">'+(S.answered?S.answered+' respuestas · '+pct+'% bien a la primera · '+S.stars+' ★'+(lp?' · practicó '+ago(lp):''):'Todavía no hay respuestas. Cuando juegue, aquí verás cómo va cada multiplicación.')+'</p>'+
     '<div class="heat-wrap">'+heat+'</div>'+
     '<div class="legend"><span><i class="sq st-done"></i>Ya la domina</span><span><i class="sq st-learn"></i>Aprendiendo</span><span><i class="sq st-hard"></i>Le cuesta</span><span><i class="sq st-new"></i>Sin practicar</span></div>'+
     '<p class="heat-info" id="heat-info" aria-live="polite">Toca un cuadro para ver el detalle.</p></div>'+
   '<div class="p-side"><div class="card p-card"><h2 class="h-m">Las que más le cuestan</h2>'+
     (hard.length?'<ul class="hard-list">'+hard.map(function(h){var e=easier(h.r,h.c);return '<li><b>'+h.r+' × '+h.c+' = '+(h.r*h.c)+'</b><button class="btn small" data-act="openTable" data-v="'+e[0]+'">Ver el truco</button></li>';}).join('')+'</ul>':'<p class="muted">Aún no hay errores registrados. Cuando juegue un rato, aquí aparecen las multiplicaciones en las que más se equivoca, con su truco.</p>')+'</div>'+
-    '<div class="card p-card"><h2 class="h-m">Tablas que practica</h2><p class="muted">Los círculos de color son las tablas que pregunta el juego. Toca un número para agregarla o quitarla.</p>'+chipsHTML()+
-    '<p class="muted small">Orden recomendado para aprenderlas:</p><div class="order">'+order+'</div></div></div></div>'+
+    tablesCard+'</div></div>'+
+  (remote?'':cloudCard())+
   '<div class="card p-card"><h2 class="h-m">Cómo funciona el juego</h2><p>Cada parte de un dibujo se pinta resolviendo una multiplicación de las tablas marcadas. El juego pregunta más seguido las que le cuestan y menos las que ya domina. Si se equivoca, Gotita le muestra un truco con puntitos y la deja intentar otra vez; nunca le quita estrellas. Con las estrellas desbloquea dibujos y colores mágicos.</p><p>Para cuando se distrae: si pasan unos segundos sin contestar, la respuesta se mueve y Gotita la llama por su nombre; a la segunda vez le resalta la pista. Cada 3 aciertos seguidos celebra la racha, y cada 10 multiplicaciones le sugiere una pausa corta.</p><p class="muted">Una multiplicación cuenta como dominada cuando la contesta bien a la primera, sin pista, varias veces.</p></div>'+
   '<div class="card p-card"><h2 class="h-m">Si se distrae fácil</h2><ul class="focus-list">'+FOCUS.map(function(a){return '<li><b>'+a[0]+'</b><span>'+a[1]+'</span></li>';}).join('')+'</ul></div>'+
   '<h2 class="h-m sec-sub">Consejos para acompañarla</h2>'+
   '<div class="advice">'+ADVICE.map(function(a){return '<div class="card adv"><h3 class="h-s">'+a[0]+'</h3><p>'+a[1]+'</p></div>';}).join('')+'</div>'+
-  '<div class="card p-card"><h2 class="h-m">Ajustes</h2>'+
+  (remote?'':'<div class="card p-card"><h2 class="h-m">Ajustes</h2>'+
     '<form id="p-name" class="set-row" autocomplete="off"><label for="p-name-in">Nombre</label><span class="nf-row" style="flex:1;max-width:420px"><input id="p-name-in" type="text" maxlength="16" value="'+esc(state.name)+'" placeholder="Nombre de tu hija"><button class="btn small" type="submit">Guardar</button></span></form>'+
     '<div class="set-row"><span>Instalar en la tablet como app</span>'+(canPWA?(isStandalone()?'<span class="badge ok">Ya está instalado</span>':'<button class="btn small lilac" data-act="install"><svg class="i"><use href="#i-download"/></svg> Instalar</button>'):'<span class="muted small">Ábrelo desde tu página para instalarlo.</span>')+'</div>'+
     '<div class="set-row"><span>Sonidos del juego</span><button class="btn small" data-act="sound">'+(state.sound?'Apagar sonidos':'Prender sonidos')+'</button></div>'+
     '<div class="set-row"><span>Leer cada pregunta en voz alta</span><span class="row-btns"><button class="btn small" data-act="testVoice">Probar la voz</button><button class="btn small" data-act="voice">'+(state.voice?'Apagar la voz':'Prender la voz')+'</button></span></div>'+
-    '<div class="set-row"><span>Borrar estrellas, avance y dibujos de este dispositivo</span><button class="btn small danger" data-act="resetAll">Borrar avance</button></div></div>';
+    '<div class="set-row"><span>Borrar estrellas, avance y dibujos de este dispositivo</span><button class="btn small danger" data-act="resetAll">Borrar avance</button></div></div>');
 }
 
 var RENDER={home:renderHome,pick:renderPick,paint:renderPaint,tricks:renderTricks,table:renderTable,quiz:renderQuiz,works:renderWorks,parents:renderParents};
@@ -1420,9 +1478,12 @@ var A={
   celStay:function(){$('#celebrate').hidden=true;},
   cfOk:function(){var f=cfFn;closeConfirm();if(f)f();},
   cfNo:function(){closeConfirm();},
-  heat:function(v,el){var p=v.split(','),r=+p[0],c=+p[1],f=state.facts[fk(r,c)],st=status(f);$$('.hc.sel').forEach(function(x){x.classList.remove('sel');});el.classList.add('sel');
+  heat:function(v,el){var p=v.split(','),r=+p[0],c=+p[1],f=(pS||state).facts[fk(r,c)],st=status(f);$$('.hc.sel').forEach(function(x){x.classList.remove('sel');});el.classList.add('sel');
     $('#heat-info').innerHTML='<b>'+r+' × '+c+' = '+(r*c)+'</b> · '+STL[st]+' · '+(f?f.c+' '+(f.c===1?'vez':'veces')+' bien a la primera, '+f.w+' con error':'todavía no le ha salido en el juego');},
-  resetAll:function(){confirmBox('¿Seguro? Se borran las estrellas, el avance y los dibujos guardados en este dispositivo.','Sí, borrar todo',function(){var keep=state.name;state=DEFAULT();state.name=keep;save();renderParents();updateBar();toast('Listo, empezamos de cero.');});}
+  copyCode:function(){var c=state.code||'';var done=function(){toast('Código copiado: '+c);};try{navigator.clipboard.writeText(c).then(done).catch(function(){toast('Tu código es '+c);});}catch(e){toast('Tu código es '+c);}},
+  refreshRemote:function(){if(remote)loadRemote(remote.code,false).then(function(ok){if(ok)toast('Avance actualizado.');});},
+  exitRemote:function(){remote=null;state.watch=null;saveLocal();renderParents();},
+  resetAll:function(){confirmBox('¿Seguro? Se borran las estrellas, el avance y los dibujos guardados en este dispositivo.','Sí, borrar todo',function(){var keep=state.name,kc=state.code;state=DEFAULT();state.name=keep;state.code=kc;save();renderParents();updateBar();toast('Listo, empezamos de cero.');});}
 };
 
 document.addEventListener('click',function(e){
@@ -1432,6 +1493,7 @@ document.addEventListener('click',function(e){
 document.addEventListener('submit',function(e){
   e.preventDefault();var f=e.target;
   if(f.id==='name-form'){var v=$('#name-in').value.trim().slice(0,16);if(v){state.name=v;save();renderHome();sfx('good');toast('¡Mucho gusto, '+esc(v)+'!');}}
+  else if(f.id==='watch-form'){var code=normCode($('#watch-in').value);if(!code){toast('Revisa el código: son 8 letras y números, como PINTA-7KQ2-M9XD.');return;}if(code===state.code){toast('Ese es el código de este mismo aparato.');return;}loadRemote(code,false);}
   else if(f.id==='p-name'){state.name=$('#p-name-in').value.trim().slice(0,16);save();renderParents();toast('Nombre guardado.');}
 });
 document.addEventListener('keydown',function(e){
@@ -1453,7 +1515,9 @@ function boot(data){
   try{var st=navigator.storage;if(st&&st.persisted&&st.persist)st.persisted().then(function(p){if(!p)return st.persist();}).catch(function(){});}catch(e){}
   /* Funciona sin internet una vez instalado (solo en tu página) */
   try{if(canPWA&&'serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){var reg=function(){navigator.serviceWorker.register('sw.js').catch(function(){});};if(document.readyState==='complete')reg();else window.addEventListener('load',reg);}}catch(e){}
-  go('home');
+  if(cloudOn&&!state.code){state.code=newCode();saveLocal();}
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&syncT)pushNow(true);});
+  go(location.hash==='#papas'?'parents':'home');
 }
 try{var hot=window.claude&&window.claude.hot;if(hot&&hot.snapshot)hot.snapshot(function(){return {state:state};});}catch(e){}
 try{
